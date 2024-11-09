@@ -14,6 +14,11 @@ public class GraphTools {
      * resolveBinding.getDeclaringClass() = Resolves and returns the binding for the method or constructor declared in this method or constructor declaration.
     */
     public String getClassName(MethodDeclaration methodDeclaration) {
+        if (methodDeclaration == null) {
+            System.err.println("Method declaration is null.");
+            return ""; // Or handle it as appropriate
+        }
+
         IMethodBinding resolveBinding = methodDeclaration.resolveBinding();
         if ((resolveBinding != null) && (resolveBinding.getDeclaringClass()!= null) ) {
             return methodDeclaration.resolveBinding().getDeclaringClass().getName();
@@ -30,6 +35,10 @@ public class GraphTools {
     /** Get the name of method invocation */
     public String getClassOfInvocationedMethod(MethodInvocation methodInvocation) {
 
+        if (methodInvocation == null) {
+            System.err.println("MethodInvocation is null.");
+            return ""; // Or handle it as appropriate
+        }
         Expression expression = methodInvocation.getExpression();
 
         if (expression != null) {
@@ -37,6 +46,10 @@ public class GraphTools {
            if (typeBinding != null) return typeBinding.getTypeDeclaration().getName();
         } else {
             IMethodBinding methodDeclaration = methodInvocation.resolveMethodBinding();
+            if (methodDeclaration == null) {
+                System.err.println("Method declaration could not be resolved for: " + methodInvocation);
+                return ""; // Or handle this case as needed
+            }
             return methodDeclaration.getDeclaringClass().getName();
         }
         return "";

@@ -1,8 +1,9 @@
 clustering/process/builder/HierarchyBuilder.class
 graphs/GraphTools.class
+graphs/distanceStrategy/NavigatorDistance.class
 graphs/coupling/distanceStrategy/strategy/impls/AddStrategy.class
-graphs/CouplingGraph.class
 clustering/visualization/Paintable.class
+graphs/CouplingGraph.class
 visitors/spoon/ClassCollector.class
 clustering/process/validator/ArgumentsValidator.class
 visitors/jdt/MethodVisitor.class
@@ -19,14 +20,13 @@ clustering/process/factories/ClustersFactory.class
 clustering/models/Pair.class
 visitors/spoon/InterfaceCollector.class
 clustering/linkage/impls/AverageLinkageStrategy.class
-graphs/coupling/distanceStrategy/strategy/impls/MaxStrategy.class
 clustering/models/ProximityDic.class
+graphs/coupling/distanceStrategy/strategy/impls/MaxStrategy.class
 visitors/jdt/ClassVisitor.class
-graphs/Graph.class
 clustering/models/ProximityDic$Item.class
-graphs/SpoonCallGraph.class
-graphs/coupling/distanceStrategy/context/NavigatorDistance.class
+graphs/Graph.class
 clustering/visualization/ClusterComponent.class
+graphs/SpoonCallGraph.class
 clustering/linkage/interfaces/LinkageStrategy.class
 graphs/JDTCallGraph.class
 clustering/visualization/DendrogramPanel.class
@@ -38,7 +38,7 @@ clustering/process/strategy/impls/DefaultClusteringAlgorithm.class
 graphs/CouplingGraphTools.class
 visitors/spoon/MethodInvocationsCollector.class
 clustering/process/strategy/interfaces/ClusteringAlgorithm.class
-visitors/jdt/MethodProcessor.class
 visitors/spoon/MethodCollector.class
+visitors/jdt/MethodProcessor.class
 graphs/coupling/distanceStrategy/strategy/DistanceStrategy.class
 clustering/models/Cluster.class

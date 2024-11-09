@@ -1,49 +1,62 @@
 package graphs;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class CouplingGraphTools {
+    private final Graph graph;
+    private final CouplingGraph couplingGraph;
 
-    private Graph graph;
-    private CouplingGraph couplingGraph = new CouplingGraph();
+    public CouplingGraphTools(Graph graph) {
+        this.graph = graph;
+        this.couplingGraph = new CouplingGraph();
+    }
 
-    public CouplingGraphTools(Graph graph) { this.graph = graph; }
     public CouplingGraph getCouplingGraph() {
         return couplingGraph;
     }
 
     public void calculateMetrics() {
-
         Map<String, Map<String, Map<String, String>>> classesInvocations = graph.getClassesInvocations();
-        double nbrInvocation = (double) graph.getTotalInvocations();
+        double totalInvocations = graph.getTotalInvocations();
 
-        for (String currentClass: classesInvocations.keySet()) {
-            //System.out.println(currentClass);
-            Map<String, Double> map = new HashMap();
-            List<String> list = new ArrayList<>();
-            for (String currentClassCurrentMethod: classesInvocations.get(currentClass).keySet()) {
-                //System.out.println(currentClassCurrentMethod);
-                list.addAll(classesInvocations.get(currentClass).get(currentClassCurrentMethod).values());
-                for (String classOfCurrentInvokedMethod: classesInvocations.get(currentClass).get(currentClassCurrentMethod).values()) {
-                    double total = (double) (map.get(classOfCurrentInvokedMethod)!=null ? map.get(classOfCurrentInvokedMethod) + 1 : 1);
-                    map.put(classOfCurrentInvokedMethod, total);
-
-                }
-            }
-            couplingGraph.addNodeToCouplingGraph(currentClass, map);
-            list.clear();
-        }
-
-        for (String currentClass : couplingGraph.getCouplingGraph().keySet()) {
-            for (String currentClassCurrentMethod: couplingGraph.getCouplingGraph().get(currentClass).keySet()) {
-                double ratio = couplingGraph.getCouplingGraph().get(currentClass).get(currentClassCurrentMethod);
-                couplingGraph.getCouplingGraph().get(currentClass).put(currentClassCurrentMethod, ratio/nbrInvocation);
-            }
-        }
+        calculateInvocationCounts(classesInvocations);
+        normalizeInvocationRatios(totalInvocations);
 
         System.out.println(couplingGraph.printCouplingGraph());
+    }
+
+    private void calculateInvocationCounts(Map<String, Map<String, Map<String, String>>> classesInvocations) {
+        for (Map.Entry<String, Map<String, Map<String, String>>> classEntry : classesInvocations.entrySet()) {
+            String currentClass = classEntry.getKey();
+            Map<String, Map<String, String>> methods = classEntry.getValue();
+            
+            Map<String, Double> invocationCounts = calculateInvocationCountsForClass(methods);
+            couplingGraph.addNodeToCouplingGraph(currentClass, invocationCounts);
+        }
+    }
+
+    private Map<String, Double> calculateInvocationCountsForClass(Map<String, Map<String, String>> methods) {
+        Map<String, Double> invocationCounts = new HashMap<>();
+        
+        for (Map<String, String> methodInvocations : methods.values()) {
+            for (String invokedClass : methodInvocations.values()) {
+                invocationCounts.merge(invokedClass, 1.0, Double::sum);
+            }
+        }
+        
+        return invocationCounts;
+    }
+
+    private void normalizeInvocationRatios(double totalInvocations) {
+        Map<String, Map<String, Double>> couplingGraphData = couplingGraph.getCouplingGraph();
+        
+        for (Map<String, Double> classInvocations : couplingGraphData.values()) {
+            for (Map.Entry<String, Double> invocation : classInvocations.entrySet()) {
+                String invokedClass = invocation.getKey();
+                double count = invocation.getValue();
+                classInvocations.put(invokedClass, count / totalInvocations);
+            }
+        }
     }
 }

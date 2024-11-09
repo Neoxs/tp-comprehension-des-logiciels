@@ -7,7 +7,6 @@ import java.util.Collection;
 
 public class AverageLinkageStrategy implements LinkageStrategy {
 
-
 	@Override
 	public Proximity calculateProximity(Collection<Proximity> proximities) {
 

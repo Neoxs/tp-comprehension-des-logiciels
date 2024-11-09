@@ -57,7 +57,16 @@ public class JDTCallGraph {
                 MethodProcessor methodProcessor = new MethodProcessor();
                 methodProcessor.processMethods(cu);
 
+                // Log the number of methods found
+                var methods = methodProcessor.getMethods();
+                System.out.println("Found " + methods.size() + " methods.");
+
                 for (MethodDeclaration method : methodProcessor.getMethods()) {
+                    // Check for null before processing
+                    if (method == null) {
+                        System.err.println("Encountered a null MethodDeclaration.");
+                        continue; // Skip this iteration
+                    }
 
                     Map<String, String> tmpMap = new HashMap<>();
 
@@ -70,6 +79,11 @@ public class JDTCallGraph {
                     if (methodInvocationVisitor.getMethods().size() > 0) {
 
                         for (MethodInvocation methodInvocation : methodInvocationVisitor.getMethods()) {
+                            // Check for null before using methodInvocation
+                            if (methodInvocation == null) {
+                                System.err.println("Encountered a null MethodInvocation.");
+                                continue; // Skip this iteration
+                            }
 
                             String classOfInvocationedMethod = graphTools.getClassOfInvocationedMethod(methodInvocation);
 

@@ -17,117 +17,134 @@ import java.util.Stack;
 public class Main {
 
     public static void main(String[] args) throws IOException {
+        Scanner sc = new Scanner(System.in);
 
-        Scanner sc= new Scanner(System.in);
-        System.out.println("\nWelcome to the software comprehension application, you need to provide project path and jdk path ");
-        System.out.println("\nPlease provide the project path you want to work on it : ");
-        String projectPath = sc.next();
+        String projectPath = getInput(sc, "Please provide the project path you want to work on: ");
+        String jrePath = getInput(sc, "Please provide the JDK path: ");
         String projectSourcePath = projectPath + "/src";
-        System.out.println("Please provide the JDK path : ");
-        String jrePath = sc.next();
-        System.out.println("\nMenu : ");
+
+        int input = getMenuSelection(sc);
+
+        if (input == 0) {
+            System.exit(0);
+        }
+
+        Graph callGraph = createCallGraph(input, projectSourcePath, jrePath);
+
+        if (callGraph != null) {
+            System.out.println(callGraph.printInvocatins());
+
+            CouplingGraphTools couplingGraphTools = new CouplingGraphTools(callGraph);
+            couplingGraphTools.calculateMetrics();
+            CouplingGraph couplingGraph = couplingGraphTools.getCouplingGraph();
+            System.out.println(couplingGraph.toString());
+        }
+
+        runClusteringExample();
+    }
+
+    // Method to handle user input for project path and JDK path
+    private static String getInput(Scanner sc, String prompt) {
+        System.out.print(prompt);
+        return sc.next();
+    }
+
+    // Method to handle menu input and validation
+    private static int getMenuSelection(Scanner sc) {
+        System.out.println("\nMenu:");
         System.out.println("1 : Response for questions using JDT.");
         System.out.println("2 : Response for questions using Spoon.");
         System.out.println("0 : Exit.");
 
-        System.out.print("What do you choose : ");
+        System.out.print("What do you choose: ");
         int input = sc.nextInt();
 
-
-        while(input < 0 || input > 2 ){
-            System.out.print("Wrong input, please choose again : ");
+        while (input < 0 || input > 2) {
+            System.out.print("Invalid choice. Please choose again: ");
             input = sc.nextInt();
         }
-        if (input==0){
-            System.exit(0);
-        }
-        if (input==1){
+        return input;
+    }
+
+    // Method to handle Call Graph creation based on user's choice
+    private static Graph createCallGraph(int input, String projectSourcePath, String jrePath) throws IOException {
+        Graph graph = null;
+
+        if (input == 1) {
             System.out.println("***** Call Graph using JDT *****");
-            Graph jdtGraph = new JDTCallGraph(new Jdt(projectSourcePath, jrePath)).createCallGraph();
-            System.out.println(jdtGraph.printInvocatins());
-
-            CouplingGraphTools couplingGraphTools = new CouplingGraphTools(jdtGraph);
-            couplingGraphTools.calculateMetrics();
-            CouplingGraph couplingGraph = couplingGraphTools.getCouplingGraph();
-            System.out.println(couplingGraph.toString());
-
-        }
-        else if (input==2){
+            graph = new JDTCallGraph(new Jdt(projectSourcePath, jrePath)).createCallGraph();
+        } else if (input == 2) {
             System.out.println("----- Call Graph using Spoon -----");
-            Graph spoonGraph = new SpoonCallGraph(new Spoon(projectSourcePath, jrePath)).createCallGraph();
-            System.out.println(spoonGraph.printInvocatins());
-
-            CouplingGraphTools couplingGraphTools = new CouplingGraphTools(spoonGraph);
-            couplingGraphTools.calculateMetrics();
-            CouplingGraph couplingGraph = couplingGraphTools.getCouplingGraph();
-            System.out.println(couplingGraph.toString());
+            graph = new SpoonCallGraph(new Spoon(projectSourcePath, jrePath)).createCallGraph();
         }
+        return graph;
+    }
 
-        String[] names =
-                new String[] { "App", "A", "B", "Customer" };
-
-        double[][] distancesMatrix = new double[][] {
-                { 0, 1, 5, 2},
+    // Method to run the clustering example
+    private static void runClusteringExample() {
+        String[] names = { "App", "A", "B", "Customer" };
+        double[][] distancesMatrix = {
+                { 0, 1, 5, 2 },
                 { 1, 0, 4, 3 },
                 { 5, 4, 0, 1 }
         };
 
-        LinkageStrategy strategy =
-                new AverageLinkageStrategy();
+        LinkageStrategy strategy = new AverageLinkageStrategy();
+        Cluster cluster = createSampleCluster(strategy, names, distancesMatrix);
 
-        Frame f1 = new Dendrogram(createSampleCluster(strategy, names, distancesMatrix) );
-        f1.setSize(500, 500);
-        f1.setLocation(400, 200);
+        // Create and display dendrogram
+        Frame dendrogramFrame = new Dendrogram(cluster);
+        dendrogramFrame.setSize(500, 500);
+        dendrogramFrame.setLocation(400, 200);
     }
 
-    private static Cluster createSampleCluster(LinkageStrategy strategy, String[] names, double[][] distancesMatrix ) {
-
-
+    // Method to create sample clustering and output to console
+    private static Cluster createSampleCluster(LinkageStrategy strategy, String[] names, double[][] distancesMatrix) {
         ClusteringAlgorithm alg = new DefaultClusteringAlgorithm();
         Cluster cluster = alg.executeClustering(distancesMatrix, names, strategy);
         cluster.toConsole(0);
-        System.err.println(selection_cluster(cluster));
+
+        // Output the selected clusters
+        List<Cluster> selectedClusters = selectClusters(cluster);
+        System.err.println(selectedClusters);
         return cluster;
     }
 
+    // Method to select clusters based on custom criteria
+    private static List<Cluster> selectClusters(Cluster rootCluster) {
+        List<Cluster> selectedClusters = new ArrayList<>();
+        Stack<Cluster> clusterStack = new Stack<>();
+        clusterStack.push(rootCluster);
 
-    private static java.util.List<Cluster> selection_cluster(Cluster dendgr) {
+        while (!clusterStack.isEmpty()) {
+            Cluster parent = clusterStack.pop();
 
-        List<Cluster> R = new ArrayList<>();
-
-        Stack<Cluster> parcoursCluster = new Stack<>();
-
-        parcoursCluster.push(dendgr);
-
-        while (!parcoursCluster.isEmpty()) {
-
-            Cluster parent = parcoursCluster.pop();
-
-            Cluster cl1 = parent.getChildren().get(0);
-            Cluster cl2 = parent.getChildren().get(1);
-
-            if (cl1 == null || cl2 == null) {
-                R.add(parent);
+            List<Cluster> children = parent.getChildren();
+            if (children == null || children.size() < 2) {
+                selectedClusters.add(parent);
                 continue;
             }
 
-            if ( S(parent) > avg( S(cl1) , S(cl2) ) ) {
-                R.add(parent);
+            Cluster cl1 = children.get(0);
+            Cluster cl2 = children.get(1);
+
+            if (S(parent) > avg(S(cl1), S(cl2))) {
+                selectedClusters.add(parent);
             } else {
-                parcoursCluster.push(cl1);
-                parcoursCluster.push(cl2);
+                clusterStack.push(cl1);
+                clusterStack.push(cl2);
             }
         }
-        return R;
-
+        return selectedClusters;
     }
 
-    private static Double S(Cluster parent) {
-        return parent.getDistanceValue();
+    // Helper method to get the distance value of a cluster
+    private static Double S(Cluster cluster) {
+        return cluster.getDistanceValue();
     }
 
+    // Helper method to calculate the average of two distance values
     private static Double avg(double value1, double value2) {
-        return ( value1 + value1 ) / 2 ;
+        return (value1 + value2) / 2;
     }
-
 }
